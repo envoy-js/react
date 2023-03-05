@@ -24,24 +24,6 @@ export class Messenger<MessageType = Message, RoomType = Room> {
     }
 }
 
-export class ChatConnection<MessageType = Message, RoomType = Room> {
-    public socket
-    public messenger
-
-    constructor(messenger: Messenger) {
-        this.messenger = messenger
-        this.socket = io(messenger.ws_url)
-    }
-
-    sendMessage(room_id: any, message: any) {
-
-    }
-
-    createRoom(name: string) {
-
-    }
-}
-
 export function useChatroom(room_id: number | string): {
     sendMessage: ((message: any) => void) | null,
     messages: Message[] | null,
@@ -64,6 +46,8 @@ interface ChatServerState {
     rooms: Room[] | null,
     messenger: Messenger,
     createRoom: (name: string) => void,
+    joinRoom: (room: Room) => void,
+    leaveRoom: (room: Room) => void,
 }
 
 export const ChatServerContext = React.createContext<ChatServerState | null>(null);
@@ -76,12 +60,31 @@ export const useChatServer = () => {
     return val;
 }
 
-export class ReactChatConnection<MessageType = Message, RoomType = Room> extends ChatConnection {
+export class ReactChatConnection<MessageType = Message, RoomType = Room> {
     setRooms
+    public socket
+    public messenger
 
     constructor(messenger: Messenger, setRooms: any) {
-        super(messenger);
+        this.messenger = messenger
+        this.socket = io(messenger.ws_url)
         this.setRooms = setRooms
+    }
+
+    sendMessage(room_id: any, message: any) {
+        this.socket.emit("clientMessage", message)
+    }
+
+    createRoom(name: string) {
+        this.socket.emit()
+    }
+
+    joinRoom(room: RoomType) {
+        this.socket.emit("clientJoinRoom", room)
+    }
+
+    leaveRoom(room: RoomType) {
+        this.socket.emit("clientLeaveRoom", room)
     }
 }
 
@@ -92,6 +95,8 @@ export function ChatServerProvider(props: { messenger: Messenger, children: Reac
     const state: ChatServerState = useMemo(() => ({
         rooms: rooms,
         createRoom: connection.createRoom,
+        joinRoom: connection.joinRoom,
+        leaveRoom: connection.leaveRoom,
         messenger: props.messenger,
         connection
     }), [connection, props.messenger])
