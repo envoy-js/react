@@ -24,7 +24,7 @@ export class Messenger<MessageType, RoomType> {
 
         return useMemo(() => ({
             sendMessage: roomWrapper ? (m: any) => connection.sendMessage(roomWrapper.room[messenger.room_key], m) : null,
-            messages: [],
+            messages: roomWrapper?.messages || [],
             errored: roomWrapper === null
         }), [roomWrapper, connection, messenger])
     }
@@ -83,12 +83,14 @@ export class ReactChatConnection<MessageType, RoomType> {
             console.log("Received message: ", message)
             setRooms((rooms: RoomWrapper<MessageType, RoomType>[]) => {
                 if (this.messenger.getRoomIDFromMessage) {
-                    for (const room of rooms) {
+                    return rooms.map(room => {
+                        console.log(room.room[this.messenger.room_key], this.messenger.getRoomIDFromMessage(message))
                         if (room.room[this.messenger.room_key] === this.messenger.getRoomIDFromMessage(message)) {
-                            room.messages.push(message)
+                            room.messages = [...room.messages, message]
                         }
-                    }
-                    return rooms
+
+                        return {...room}
+                    })
                 }
             })
         })
@@ -99,7 +101,7 @@ export class ReactChatConnection<MessageType, RoomType> {
         })
     }
 
-    sendMessage(room_id: any, message: any) {
+    sendMessage(room_id: any, message: MessageType) {
         console.log("Sending message: ", message)
         this.socket.emit("clientMessage", message)
     }
