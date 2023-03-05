@@ -57,6 +57,19 @@ export class ReactChatConnection<MessageType, RoomType> {
         this.messenger = messenger
         this.socket = io(messenger.ws_url)
         this.setRooms = setRooms
+        
+        this.socket.on("serverMessage", (message: MessageType) => {
+            setRooms((rooms: RoomWrapper<MessageType, RoomType>[]) => {
+                if (this.messenger.getRoomIDFromMessage) {
+                    for (const room of rooms) {
+                        if (room.room[this.messenger.room_key] === this.messenger.getRoomIDFromMessage(message)) {
+                            room.messages.push(message)
+                        }
+                    }
+                    return rooms
+                }
+            })
+        })
     }
 
     sendMessage(room_id: any, message: any) {
