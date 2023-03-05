@@ -5,10 +5,12 @@ import {io} from "socket.io-client";
 export class Messenger<MessageType, RoomType> {
     ws_url: string
     room_key: keyof RoomType
+    getRoomIDFromMessage
 
-    constructor(ws_url: string, room_key: keyof RoomType) {
+    constructor(ws_url: string, room_key: keyof RoomType, getRoomIDFromMessage: ((m: MessageType) => any)) {
         this.ws_url = ws_url
         this.room_key = room_key
+        this.getRoomIDFromMessage = getRoomIDFromMessage
     }
 }
 
@@ -78,6 +80,7 @@ export interface RoomWrapper<MessageType, RoomType> {
     messages: MessageType[],
     room: RoomType
 }
+
 
 export function ChatServerProvider<MessageType, RoomType>(props: { messenger: Messenger<MessageType, RoomType>, children: React.ReactNode }) {
     const [rooms, setRooms] = useState<RoomWrapper<MessageType, RoomType>[] | null>(null)
