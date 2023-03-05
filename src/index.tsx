@@ -12,24 +12,6 @@ export class Messenger<MessageType, RoomType> {
     }
 }
 
-export class ChatConnection<MessageType, RoomType> {
-    public socket
-    public messenger
-
-    constructor(messenger: Messenger<MessageType, RoomType>) {
-        this.messenger = messenger
-        this.socket = io(messenger.ws_url)
-    }
-
-    sendMessage(room_id: any, message: any) {
-
-    }
-
-    createRoom(name: string) {
-
-    }
-}
-
 export function useChatroom<MessageType, RoomType>(room_id: number | string): {
     sendMessage: ((message: any) => void) | null,
     messages: MessageType[] | null,
@@ -50,6 +32,8 @@ interface ChatServerState<MessageType, RoomType> {
     rooms: RoomWrapper<MessageType, RoomType>[] | null,
     messenger: Messenger<MessageType, RoomType>,
     createRoom: (name: string) => void,
+    joinRoom: (room: Room) => void,
+    leaveRoom: (room: Room) => void,
 }
 
 export const ChatServerContext = React.createContext<ChatServerState<any, any> | null>(null);
@@ -62,12 +46,31 @@ export function useChatServer<MessageType, RoomType>() {
     return val as ChatServerState<MessageType, RoomType>;
 }
 
-export class ReactChatConnection<MessageType, RoomType> extends ChatConnection<MessageType, RoomType> {
+export class ReactChatConnection<MessageType = Message, RoomType = Room> {
     setRooms
+    public socket
+    public messenger
 
-    constructor(messenger: Messenger<MessageType, RoomType>, setRooms: any) {
-        super(messenger);
+    constructor(messenger: Messenger, setRooms: any) {
+        this.messenger = messenger
+        this.socket = io(messenger.ws_url)
         this.setRooms = setRooms
+    }
+
+    sendMessage(room_id: any, message: any) {
+        this.socket.emit("clientMessage", message)
+    }
+
+    createRoom(name: string) {
+        this.socket.emit()
+    }
+
+    joinRoom(room: RoomType) {
+        this.socket.emit("clientJoinRoom", room)
+    }
+
+    leaveRoom(room: RoomType) {
+        this.socket.emit("clientLeaveRoom", room)
     }
 }
 
@@ -83,6 +86,8 @@ export function ChatServerProvider<MessageType, RoomType>(props: { messenger: Me
     const state: ChatServerState<MessageType, RoomType> = useMemo(() => ({
         rooms: rooms,
         createRoom: connection.createRoom,
+        joinRoom: connection.joinRoom,
+        leaveRoom: connection.leaveRoom,
         messenger: props.messenger,
         connection
     }), [connection, props.messenger])
