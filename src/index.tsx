@@ -92,6 +92,10 @@ export class ReactChatConnection<MessageType, RoomType> {
                 }
             })
         })
+
+        this.socket.on("allRooms", (rooms: RoomWrapper<MessageType, RoomType>[]) => {
+            setRooms(rooms)
+        })
     }
 
     sendMessage(room_id: any, message: any) {
