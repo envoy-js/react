@@ -1,4 +1,4 @@
-import {ChatServerProvider, Messenger, Room, useChatroom, useChatServer} from "@envoy/react";
+import {ChatServerProvider, Messenger, useChatroom, useChatServer} from "@envoy/react";
 
 import React from "react";
 
@@ -14,17 +14,17 @@ export function ExampleMessenger() {
 }
 
 export function ChatRooms() {
-    const {createRoom, rooms} = useChatServer()
+    const {createRoom, rooms} = useChatServer<{}, { id: string }>()
     return (
         <>
             {
-                (rooms || []).map(r => <ExampleChat room={r}/>)
+                (rooms || []).map(r => <ExampleChat room={r.room}/>)
             }
         </>
     )
 }
 
-export function ExampleChat(props: { room: Room }) {
+export function ExampleChat(props: { room: { id: string } }) {
     const {sendMessage, messages} = useChatroom(props.room.id)
 
     return <div>

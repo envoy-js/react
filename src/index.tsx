@@ -17,7 +17,7 @@ export function useChatroom<MessageType, RoomType>(room_id: number | string): {
     messages: MessageType[] | null,
     errored: boolean,
 } {
-    const {rooms, messenger, connection} = useChatServer()
+    const {rooms, messenger, connection} = useChatServer<MessageType, RoomType>()
     const roomWrapper = useMemo(() => (rooms || []).find(r => r.room[messenger.room_key] == room_id), [rooms, room_id])
 
     return useMemo(() => ({
@@ -74,9 +74,9 @@ export class ReactChatConnection<MessageType, RoomType> {
     }
 }
 
-interface RoomWrapper<MessageType, RoomType> {
+export interface RoomWrapper<MessageType, RoomType> {
     messages: MessageType[],
-    room: RoomType[]
+    room: RoomType
 }
 
 export function ChatServerProvider<MessageType, RoomType>(props: { messenger: Messenger<MessageType, RoomType>, children: React.ReactNode }) {
