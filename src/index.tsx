@@ -6,11 +6,13 @@ export class Messenger<MessageType, RoomType> {
     ws_url: string
     room_key: keyof RoomType
     getRoomIDFromMessage
+    ChatServerContext
 
     constructor(ws_url: string, room_key: keyof RoomType, getRoomIDFromMessage: ((m: MessageType) => any)) {
         this.ws_url = ws_url
         this.room_key = room_key
         this.getRoomIDFromMessage = getRoomIDFromMessage
+        this.ChatServerContext = React.createContext<ChatServerState<any, any> | null>(null);
     }
 
 
@@ -30,12 +32,31 @@ export class Messenger<MessageType, RoomType> {
     }
 
     public useChatServer(): ChatServerState<MessageType, RoomType> {
-        let val = React.useContext(ChatServerContext)
+        let val = React.useContext(this.ChatServerContext)
         if (val == null) {
             throw new Error("Cannot use useChatServer outside of ChatServerContext")
         }
         return val as ChatServerState<MessageType, RoomType>;
     }
+
+    public ChatServerProvider<MessageType, RoomType>(props: { messenger: Messenger<MessageType, RoomType>, children: React.ReactNode }) {
+        const [rooms, setRooms] = useState<RoomWrapper<MessageType, RoomType>[] | null>(null)
+        const connection = useMemo(() => new ReactChatConnection<MessageType, RoomType>(props.messenger, setRooms), [props.messenger])
+
+        const state: ChatServerState<MessageType, RoomType> = useMemo(() => ({
+            rooms: rooms,
+            createRoom: connection.createRoom,
+            joinRoom: connection.joinRoom,
+            leaveRoom: connection.leaveRoom,
+            messenger: props.messenger,
+            connection
+        }), [connection, props.messenger])
+
+        return <this.ChatServerContext.Provider value={state}>
+            {props.children}
+        </this.ChatServerContext.Provider>
+    }
+
 
 }
 
@@ -48,8 +69,6 @@ interface ChatServerState<MessageType, RoomType> {
     joinRoom: (room: RoomType) => void,
     leaveRoom: (room: RoomType) => void,
 }
-
-export const ChatServerContext = React.createContext<ChatServerState<any, any> | null>(null);
 
 export class ReactChatConnection<MessageType, RoomType> {
     setRooms
@@ -95,24 +114,5 @@ export class ReactChatConnection<MessageType, RoomType> {
 export interface RoomWrapper<MessageType, RoomType> {
     messages: MessageType[],
     room: RoomType
-}
-
-
-export function ChatServerProvider<MessageType, RoomType>(props: { messenger: Messenger<MessageType, RoomType>, children: React.ReactNode }) {
-    const [rooms, setRooms] = useState<RoomWrapper<MessageType, RoomType>[] | null>(null)
-    const connection = useMemo(() => new ReactChatConnection<MessageType, RoomType>(props.messenger, setRooms), [props.messenger])
-
-    const state: ChatServerState<MessageType, RoomType> = useMemo(() => ({
-        rooms: rooms,
-        createRoom: connection.createRoom,
-        joinRoom: connection.joinRoom,
-        leaveRoom: connection.leaveRoom,
-        messenger: props.messenger,
-        connection
-    }), [connection, props.messenger])
-
-    return <ChatServerContext.Provider value={state}>
-        {props.children}
-    </ChatServerContext.Provider>
 }
 

@@ -18,9 +18,9 @@ const messenger = new Messenger<Message, Room>(
 )
 
 export function ExampleMessenger() {
-    return <ChatServerProvider messenger={messenger}>
+    return <messenger.ChatServerProvider messenger={messenger}>
         <ChatRooms/>
-    </ChatServerProvider>
+    </messenger.ChatServerProvider>
 }
 
 export function ChatRooms() {
@@ -28,7 +28,7 @@ export function ChatRooms() {
     return (
         <>
             {
-                (rooms || []).map(r => <ExampleChat room={r.room}/>)
+                (rooms || []).map((r: RoomWrapper) => <ExampleChat room={r.room}/>)
             }
         </>
     )
@@ -38,6 +38,6 @@ export function ExampleChat(props: { room: { id: string } }) {
     const {sendMessage, messages} = messenger.useChatroom(props.room.id)
 
     return <div>
-        {(messages || []).map(m => <div>{m.content}</div>)}
+        {(messages || []).map((m: Message) => <div>{m.content}</div>)}
     </div>
 }
