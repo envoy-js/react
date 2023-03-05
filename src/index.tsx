@@ -12,22 +12,33 @@ export class Messenger<MessageType, RoomType> {
         this.room_key = room_key
         this.getRoomIDFromMessage = getRoomIDFromMessage
     }
+
+
+    public useChatroom(room_id: number | string): {
+        sendMessage: ((message: any) => void) | null,
+        messages: MessageType[] | null,
+        errored: boolean,
+    } {
+        const {rooms, messenger, connection} = this.useChatServer()
+        const roomWrapper = useMemo(() => (rooms || []).find(r => r.room[messenger.room_key] == room_id), [rooms, room_id])
+
+        return useMemo(() => ({
+            sendMessage: roomWrapper ? (m: any) => connection.sendMessage(roomWrapper.room[messenger.room_key], m) : null,
+            messages: [],
+            errored: roomWrapper === null
+        }), [roomWrapper, connection, messenger])
+    }
+
+    public useChatServer(): ChatServerState<MessageType, RoomType> {
+        let val = React.useContext(ChatServerContext)
+        if (val == null) {
+            throw new Error("Cannot use useChatServer outside of ChatServerContext")
+        }
+        return val as ChatServerState<MessageType, RoomType>;
+    }
+
 }
 
-export function useChatroom<MessageType, RoomType>(room_id: number | string): {
-    sendMessage: ((message: any) => void) | null,
-    messages: MessageType[] | null,
-    errored: boolean,
-} {
-    const {rooms, messenger, connection} = useChatServer<MessageType, RoomType>()
-    const roomWrapper = useMemo(() => (rooms || []).find(r => r.room[messenger.room_key] == room_id), [rooms, room_id])
-
-    return useMemo(() => ({
-        sendMessage: roomWrapper ? (m: any) => connection.sendMessage(roomWrapper.room[messenger.room_key], m) : null,
-        messages: [],
-        errored: roomWrapper === null
-    }), [roomWrapper, connection, messenger])
-}
 
 interface ChatServerState<MessageType, RoomType> {
     connection: ReactChatConnection<MessageType, RoomType>,
@@ -39,14 +50,6 @@ interface ChatServerState<MessageType, RoomType> {
 }
 
 export const ChatServerContext = React.createContext<ChatServerState<any, any> | null>(null);
-
-export function useChatServer<MessageType, RoomType>() {
-    let val = React.useContext(ChatServerContext)
-    if (val == null) {
-        throw new Error("Cannot use useChatServer outside of ChatServerContext")
-    }
-    return val as ChatServerState<MessageType, RoomType>;
-}
 
 export class ReactChatConnection<MessageType, RoomType> {
     setRooms

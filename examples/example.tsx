@@ -1,10 +1,20 @@
-import {ChatServerProvider, Messenger, useChatroom, useChatServer} from "@envoy/react";
+import {ChatServerProvider, Messenger} from "@envoy/react";
 
 import React from "react";
 
-const messenger = new Messenger(
+interface Message {
+    room_id: string,
+    content: string
+}
+
+interface Room {
+    id: string
+}
+
+const messenger = new Messenger<Message, Room>(
     "ws://localhost:3000",
-    "id"
+    "id",
+    (m) => m.room_id
 )
 
 export function ExampleMessenger() {
@@ -14,7 +24,7 @@ export function ExampleMessenger() {
 }
 
 export function ChatRooms() {
-    const {createRoom, rooms} = useChatServer<{}, { id: string }>()
+    const {createRoom, rooms} = messenger.useChatServer()
     return (
         <>
             {
@@ -25,9 +35,9 @@ export function ChatRooms() {
 }
 
 export function ExampleChat(props: { room: { id: string } }) {
-    const {sendMessage, messages} = useChatroom(props.room.id)
+    const {sendMessage, messages} = messenger.useChatroom(props.room.id)
 
     return <div>
-        {(messages || []).map(m => <div/>)}
+        {(messages || []).map(m => <div>{m.content}</div>)}
     </div>
 }
