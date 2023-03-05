@@ -1,5 +1,4 @@
-import {ChatServerProvider, useChatroom, useChatServer} from "@envoy/react";
-import {Messenger, Room} from "@envoy/react/connections";
+import {ChatServerProvider, Messenger, Room, useChatroom, useChatServer} from "@envoy/react";
 
 import React from "react";
 
