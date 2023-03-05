@@ -2,19 +2,7 @@ import React, {useMemo, useState} from "react";
 
 import {io} from "socket.io-client";
 
-export interface Message {
-    id: string,
-    room_id: string,
-    content: string,
-    author_id: string
-}
-
-export interface Room {
-    id: string,
-    name: string,
-}
-
-export class Messenger<MessageType = Message, RoomType = Room> {
+export class Messenger<MessageType, RoomType> {
     ws_url: string
     room_key: keyof RoomType
 
@@ -24,11 +12,11 @@ export class Messenger<MessageType = Message, RoomType = Room> {
     }
 }
 
-export class ChatConnection<MessageType = Message, RoomType = Room> {
+export class ChatConnection<MessageType, RoomType> {
     public socket
     public messenger
 
-    constructor(messenger: Messenger) {
+    constructor(messenger: Messenger<MessageType, RoomType>) {
         this.messenger = messenger
         this.socket = io(messenger.ws_url)
     }
@@ -42,54 +30,57 @@ export class ChatConnection<MessageType = Message, RoomType = Room> {
     }
 }
 
-export function useChatroom(room_id: number | string): {
+export function useChatroom<MessageType, RoomType>(room_id: number | string): {
     sendMessage: ((message: any) => void) | null,
-    messages: Message[] | null,
-    name: string | null,
+    messages: MessageType[] | null,
     errored: boolean,
 } {
     const {rooms, messenger, connection} = useChatServer()
-    const room = useMemo(() => (rooms || []).find(r => r.id == room_id), [rooms, room_id])
+    const roomWrapper = useMemo(() => (rooms || []).find(r => r.room[messenger.room_key] == room_id), [rooms, room_id])
 
     return useMemo(() => ({
-        sendMessage: room ? (m: any) => connection.sendMessage(room[messenger.room_key], m) : null,
+        sendMessage: roomWrapper ? (m: any) => connection.sendMessage(roomWrapper.room[messenger.room_key], m) : null,
         messages: [],
-        name: room?.name || null,
-        errored: room === null
-    }), [room, connection, messenger])
+        errored: roomWrapper === null
+    }), [roomWrapper, connection, messenger])
 }
 
-interface ChatServerState {
-    connection: ReactChatConnection,
-    rooms: Room[] | null,
-    messenger: Messenger,
+interface ChatServerState<MessageType, RoomType> {
+    connection: ReactChatConnection<MessageType, RoomType>,
+    rooms: RoomWrapper<MessageType, RoomType>[] | null,
+    messenger: Messenger<MessageType, RoomType>,
     createRoom: (name: string) => void,
 }
 
-export const ChatServerContext = React.createContext<ChatServerState | null>(null);
+export const ChatServerContext = React.createContext<ChatServerState<any, any> | null>(null);
 
-export const useChatServer = () => {
+export function useChatServer<MessageType, RoomType>() {
     let val = React.useContext(ChatServerContext)
     if (val == null) {
         throw new Error("Cannot use useChatServer outside of ChatServerContext")
     }
-    return val;
+    return val as ChatServerState<MessageType, RoomType>;
 }
 
-export class ReactChatConnection<MessageType = Message, RoomType = Room> extends ChatConnection {
+export class ReactChatConnection<MessageType, RoomType> extends ChatConnection<MessageType, RoomType> {
     setRooms
 
-    constructor(messenger: Messenger, setRooms: any) {
+    constructor(messenger: Messenger<MessageType, RoomType>, setRooms: any) {
         super(messenger);
         this.setRooms = setRooms
     }
 }
 
-export function ChatServerProvider(props: { messenger: Messenger, children: React.ReactNode }) {
-    const [rooms, setRooms] = useState<Room[] | null>(null)
-    const connection = useMemo(() => new ReactChatConnection(props.messenger, setRooms), [props.messenger])
+interface RoomWrapper<MessageType, RoomType> {
+    messages: MessageType[],
+    room: RoomType[]
+}
 
-    const state: ChatServerState = useMemo(() => ({
+export function ChatServerProvider<MessageType, RoomType>(props: { messenger: Messenger<MessageType, RoomType>, children: React.ReactNode }) {
+    const [rooms, setRooms] = useState<RoomWrapper<MessageType, RoomType>[] | null>(null)
+    const connection = useMemo(() => new ReactChatConnection<MessageType, RoomType>(props.messenger, setRooms), [props.messenger])
+
+    const state: ChatServerState<MessageType, RoomType> = useMemo(() => ({
         rooms: rooms,
         createRoom: connection.createRoom,
         messenger: props.messenger,
