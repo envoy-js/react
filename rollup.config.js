@@ -1,6 +1,7 @@
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import typescript from "@rollup/plugin-typescript";
+// import typescript from 'rollup-plugin-typescript2';
 import dts from "rollup-plugin-dts";
 
 import packageJson from "./package.json" assert {type: "json"};
@@ -23,7 +24,7 @@ export default [
         plugins: [
             resolve(),
             commonjs(),
-            typescript({tsconfig: "./tsconfig.json"}),
+            typescript({exclude: ["**/examples"], tsconfig: "./tsconfig.json"}),
         ],
     },
     {
