@@ -32,8 +32,8 @@ interface ChatServerState<MessageType, RoomType> {
     rooms: RoomWrapper<MessageType, RoomType>[] | null,
     messenger: Messenger<MessageType, RoomType>,
     createRoom: (name: string) => void,
-    joinRoom: (room: Room) => void,
-    leaveRoom: (room: Room) => void,
+    joinRoom: (room: RoomType) => void,
+    leaveRoom: (room: RoomType) => void,
 }
 
 export const ChatServerContext = React.createContext<ChatServerState<any, any> | null>(null);
@@ -46,12 +46,12 @@ export function useChatServer<MessageType, RoomType>() {
     return val as ChatServerState<MessageType, RoomType>;
 }
 
-export class ReactChatConnection<MessageType = Message, RoomType = Room> {
+export class ReactChatConnection<MessageType, RoomType> {
     setRooms
     public socket
     public messenger
 
-    constructor(messenger: Messenger, setRooms: any) {
+    constructor(messenger: Messenger<MessageType, RoomType>, setRooms: any) {
         this.messenger = messenger
         this.socket = io(messenger.ws_url)
         this.setRooms = setRooms
@@ -62,7 +62,7 @@ export class ReactChatConnection<MessageType = Message, RoomType = Room> {
     }
 
     createRoom(name: string) {
-        this.socket.emit()
+        // this.socket.emit()
     }
 
     joinRoom(room: RoomType) {
