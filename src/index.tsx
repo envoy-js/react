@@ -53,7 +53,7 @@ export function ChatServerProvider<MessageType, RoomType>(props: { messenger: Me
         leaveRoom: connection.leaveRoom,
         messenger: props.messenger,
         connection
-    }), [connection, props.messenger])
+    }), [connection, props.messenger, rooms])
 
     return <ChatServerContext.Provider value={state}>
         {props.children}
