@@ -30,7 +30,7 @@ export class Messenger<MessageType, RoomType> {
     }
 
     public useChatServer(): ChatServerState<MessageType, RoomType> {
-        let val = React.useContext(this.ChatServerContext)
+        let val = React.useContext(ChatServerContext)
         if (val == null) {
             throw new Error("Cannot use useChatServer outside of ChatServerContext")
         }
