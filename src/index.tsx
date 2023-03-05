@@ -80,7 +80,6 @@ export class ReactChatConnection<MessageType, RoomType> {
         this.setRooms = setRooms
 
         this.socket.on("serverMessage", (message: MessageType) => {
-            console.log("Received message: ", message)
             setRooms((rooms: RoomWrapper<MessageType, RoomType>[]) => {
                 if (this.messenger.getRoomIDFromMessage) {
                     for (const room of rooms) {
@@ -94,13 +93,11 @@ export class ReactChatConnection<MessageType, RoomType> {
         })
 
         this.socket.on("allRooms", (rooms: RoomWrapper<MessageType, RoomType>[]) => {
-            console.log("Rooms received: ", rooms)
             setRooms(rooms)
         })
     }
 
     sendMessage(room_id: any, message: any) {
-        console.log("Sending message: ", message)
         this.socket.emit("clientMessage", message)
     }
 
