@@ -1,12 +1,11 @@
 {
-  "name": "@envoy/react",
+  "name": "@envoy-js/react",
   "version": "1.0.0",
   "repository": "https://github.com/envoy-js/react",
   "author": "henry232323, pumpkintitan",
   "license": "MIT",
   "private": false,
   "devDependencies": {
-    "@envoy/react": "link:./src",
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-typescript": "^11.0.0",
