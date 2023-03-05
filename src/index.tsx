@@ -58,7 +58,7 @@ export class ReactChatConnection<MessageType, RoomType> {
 
     constructor(messenger: Messenger<MessageType, RoomType>, setRooms: any) {
         this.messenger = messenger
-        this.socket = io(messenger.ws_url)
+        this.socket = io(messenger.ws_url, { transports: ["websocket"] })
         this.setRooms = setRooms
         
         this.socket.on("serverMessage", (message: MessageType) => {
